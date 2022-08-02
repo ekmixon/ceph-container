@@ -29,13 +29,15 @@ try:
     os.makedirs(STAGING_DIR, mode=0o755)
 except (OSError, IOError) as o:
     IOOSErrorGracefulFail(
-        o, 'Could not delete and recreate staging dir: {}'.format(STAGING_DIR))
+        o, f'Could not delete and recreate staging dir: {STAGING_DIR}'
+    )
+
 
 
 LOG_FILE = os.path.join(STAGING_DIR, "stage.log")
 loglevel = logging.INFO
 # If DEBUG env var is set to anything (including empty string) except '0', log debug text
-if 'DEBUG' in os.environ and not os.environ['DEBUG'] == '0':
+if 'DEBUG' in os.environ and os.environ['DEBUG'] != '0':
     loglevel = logging.DEBUG
 logging.basicConfig(filename=LOG_FILE, level=loglevel, format='%(levelname)5s:  %(message)s')
 
@@ -47,7 +49,7 @@ if sys.version_info[0] < 3:
 
 def main(CORE_FILES_DIR, CEPH_RELEASES_DIR):
     logging.info('\n\n\n')  # Make it easier to determine where new runs start
-    logging.info('Start time: {}'.format(time.ctime()))
+    logging.info(f'Start time: {time.ctime()}')
 
     print('')
     verifyRequiredEnvVars()
@@ -61,13 +63,13 @@ def main(CORE_FILES_DIR, CEPH_RELEASES_DIR):
     print('')
 
     exportGitInfoEnvVars()
-    logging.info('GIT_REPO:   {}'.format(getEnvVar('GIT_REPO')))
-    logging.info('GIT_BRANCH: {}'.format(getEnvVar('GIT_BRANCH')))
-    logging.info('GIT_COMMIT: {}'.format(getEnvVar('GIT_COMMIT')))
-    logging.info('GIT_CLEAN:  {}'.format(getEnvVar('GIT_CLEAN')))
+    logging.info(f"GIT_REPO:   {getEnvVar('GIT_REPO')}")
+    logging.info(f"GIT_BRANCH: {getEnvVar('GIT_BRANCH')}")
+    logging.info(f"GIT_COMMIT: {getEnvVar('GIT_COMMIT')}")
+    logging.info(f"GIT_CLEAN:  {getEnvVar('GIT_CLEAN')}")
 
     exportGoArchEnvVar()
-    logging.info('GO_ARCH: {}'.format(getEnvVar('GO_ARCH')))
+    logging.info(f"GO_ARCH: {getEnvVar('GO_ARCH')}")
 
     CEPH_VERSION = getEnvVar('CEPH_VERSION')
     CEPH_DEVEL = getEnvVar('CEPH_DEVEL')
@@ -78,7 +80,7 @@ def main(CORE_FILES_DIR, CEPH_RELEASES_DIR):
 
     # Search from least specfic to most specific
     path_search_order = [
-        "{}".format(CORE_FILES_DIR),
+        f"{CORE_FILES_DIR}",
         os.path.join(CEPH_RELEASES_DIR, 'ALL'),
         os.path.join(CEPH_RELEASES_DIR, 'ALL', DISTRO),
         os.path.join(CEPH_RELEASES_DIR, 'ALL', DISTRO, DISTRO_VERSION),
@@ -86,13 +88,14 @@ def main(CORE_FILES_DIR, CEPH_RELEASES_DIR):
         os.path.join(CEPH_RELEASES_DIR, CEPH_VERSION, DISTRO),
         os.path.join(CEPH_RELEASES_DIR, CEPH_VERSION, DISTRO, DISTRO_VERSION),
     ]
-    logging.debug('Path search order: {}'.format(path_search_order))
+
+    logging.debug(f'Path search order: {path_search_order}')
 
     files_copied = OrderedDict()
     # e.g., IMAGES_TO_BUILD = ['daemon-base', 'daemon']
     for image in IMAGES_TO_BUILD:
         logging.info('')
-        logging.info('{}/'.format(image))
+        logging.info(f'{image}/')
         logging.info('    Copying files (preceding * indicates file has been modified)')
         for src_path in path_search_order:
             if not os.path.isdir(src_path):

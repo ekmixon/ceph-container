@@ -13,28 +13,75 @@ ALIGNED_NEWLINE = '\n' + ' ' * 21  # align second line to column
 # <var name>: <description>
 # Add new required variables simply by adding a new tuple to this setup
 # Allow lines to extend beyond 99 char limit by 6 chars to support output formatting to 100 cols
-REQUIRED_ENV_VARS = OrderedDict([
-    ('CEPH_VERSION',       'Ceph named version part of the ceph-releases source path' +  # noqa: E241,E501
-                            ALIGNED_NEWLINE + '(e.g., luminous, mimic)'),  # noqa: E241
-    ('CEPH_REF',           'Branch name of Ceph (e.g. wip-luminous-test)'),  # noqa: E241,E501
-    ('CEPH_POINT_RELEASE', 'Points to specific version of Ceph (e.g -12.2.0) or empty'),  # noqa: E241,E501
-    ('CEPH_DEVEL',         'Flag to enable ceph development packages (default false)'),  # noqa: E241,E501
-    ('OSD_FLAVOR',         'Choose to build between default and crimson osd (default flavor: default)'),  # noqa: E241,E501
-    ('DISTRO',             'Distro part of the ceph-releases source path (e.g., opensuse, centos)'),  # noqa: E241,E501
-    ('DISTRO_VERSION',     'Distro version part of the ceph-releases source path' +  # noqa: E241,E501
-                            ALIGNED_NEWLINE + '(e.g. in quotes, opensuse/"42.3", centos/"7")'),
-    ('HOST_ARCH',          'Architecture of binaries being built (e.g., amd64, arm32, arm64)'),  # noqa: E241,E501
-    ('BASEOS_REGISTRY',    'Registry for the container base image (e.g., _ (x86_64), arm64v8 (aarch64))' +  # noqa: E241,E501
-                            ALIGNED_NEWLINE + 'There is a relation between HOST_ARCH and this value'),  # noqa: E241,E501
-    ('BASEOS_REPO',        'Repository for the container base image (e.g., centos, opensuse)'),  # noqa: E241,E501
-    ('BASEOS_TAG',         'Tagged version of BASEOS_REPO container (e.g., 7, 42.3 respectively)'),  # noqa: E241,E501
-    ('IMAGES_TO_BUILD',    'Container images to be built (usually should be "dockerfile daemon")'),  # noqa: E241,E501
-    ('STAGING_DIR',        'Dir into which files will be staged' + ALIGNED_NEWLINE +  # noqa: E241
-                           'This dir will be overwritten if it already exists'),  # noqa: E241
-    ('RELEASE',            'Release string for the build'),  # noqa: E241
-    ('DAEMON_BASE_IMAGE',  'Tag given to the daemon-base image and used as base for the daemon image'),  # noqa: E241,E501
-    ('DAEMON_IMAGE',       'Tag given to the daemon image'),  # noqa: E241
-])
+REQUIRED_ENV_VARS = OrderedDict(
+    [
+        (
+            'CEPH_VERSION',
+            'Ceph named version part of the ceph-releases source path'
+            + ALIGNED_NEWLINE  # noqa: E241,E501
+            + '(e.g., luminous, mimic)',
+        ),
+        ('CEPH_REF', 'Branch name of Ceph (e.g. wip-luminous-test)'),
+        (
+            'CEPH_POINT_RELEASE',
+            'Points to specific version of Ceph (e.g -12.2.0) or empty',
+        ),
+        (
+            'CEPH_DEVEL',
+            'Flag to enable ceph development packages (default false)',
+        ),
+        (
+            'OSD_FLAVOR',
+            'Choose to build between default and crimson osd (default flavor: default)',
+        ),
+        (
+            'DISTRO',
+            'Distro part of the ceph-releases source path (e.g., opensuse, centos)',
+        ),
+        (
+            'DISTRO_VERSION',
+            'Distro version part of the ceph-releases source path'
+            + ALIGNED_NEWLINE  # noqa: E241,E501
+            + '(e.g. in quotes, opensuse/"42.3", centos/"7")',
+        ),
+        (
+            'HOST_ARCH',
+            'Architecture of binaries being built (e.g., amd64, arm32, arm64)',
+        ),
+        (
+            'BASEOS_REGISTRY',
+            'Registry for the container base image (e.g., _ (x86_64), arm64v8 (aarch64))'
+            + ALIGNED_NEWLINE  # noqa: E241,E501
+            + 'There is a relation between HOST_ARCH and this value',
+        ),
+        (
+            'BASEOS_REPO',
+            'Repository for the container base image (e.g., centos, opensuse)',
+        ),
+        (
+            'BASEOS_TAG',
+            'Tagged version of BASEOS_REPO container (e.g., 7, 42.3 respectively)',
+        ),
+        (
+            'IMAGES_TO_BUILD',
+            'Container images to be built (usually should be "dockerfile daemon")',
+        ),
+        (
+            'STAGING_DIR',
+            (
+                f'Dir into which files will be staged{ALIGNED_NEWLINE}'
+                + 'This dir will be overwritten if it already exists'
+            ),
+        ),
+        ('RELEASE', 'Release string for the build'),
+        (
+            'DAEMON_BASE_IMAGE',
+            'Tag given to the daemon-base image and used as base for the daemon image',
+        ),
+        ('DAEMON_IMAGE', 'Tag given to the daemon image'),
+    ]
+)
+
 _REQUIRED_VAR_TEXT = """
 Required environment variables:
 """
@@ -76,9 +123,9 @@ def getEnvVar(varname):
 
 
 def exportBaseImageEnvVar():
-    BASE_IMAGE = "{}:{}".format(getEnvVar('BASEOS_REPO'), getEnvVar('BASEOS_TAG'))
+    BASE_IMAGE = f"{getEnvVar('BASEOS_REPO')}:{getEnvVar('BASEOS_TAG')}"
     if getEnvVar('BASEOS_REGISTRY'):
-        BASE_IMAGE = "{}/{}".format(getEnvVar('BASEOS_REGISTRY'), BASE_IMAGE)
+        BASE_IMAGE = f"{getEnvVar('BASEOS_REGISTRY')}/{BASE_IMAGE}"
     os.environ['BASE_IMAGE'] = BASE_IMAGE
 
 
@@ -100,7 +147,7 @@ def exportGitInfoEnvVars():
     GIT_BRANCH = git.get_branch()
     os.environ['GIT_BRANCH'] = GIT_BRANCH
     GIT_CLEAN = not git.branch_is_dirty()
-    os.environ['GIT_CLEAN'] = "{}".format(GIT_CLEAN)
+    os.environ['GIT_CLEAN'] = f"{GIT_CLEAN}"
 
 
 # Some Ceph architectures aren't the same string as golang architectures, so specify conversions

@@ -10,7 +10,7 @@ def _run_cmd(cmd_array):
     try:
         return subprocess.check_output(cmd_array).decode("utf-8").strip()
     except subprocess.CalledProcessError as c:
-        logging.warning('Command {} return error code [{}]:'.format(c.cmd, c.returncode))
+        logging.warning(f'Command {c.cmd} return error code [{c.returncode}]:')
         return None
 
 
@@ -36,17 +36,15 @@ def file_is_dirty(file_path):
     """If a file is new, modified, or deleted in git's tracking return True. False otherwise."""
     file_status_msg = _run_cmd(['git', 'status', '--untracked-files=all', str(file_path)])
     # git outputs filename on a line prefixed by whitespace if the file is new/modified/deleted
-    if re.match(r'^\s*' + file_path + '$', file_status_msg):
-        return True
-    return False
+    return bool(re.match(r'^\s*' + file_path + '$', file_status_msg))
 
 
 def branch_is_dirty():
     """
     If any files are new, modified, or deleted in git's tracking return True. False otherwise.
     """
-    branch_status_msg = _run_cmd(['git', 'status', '--untracked-files=all', '--porcelain'])
-    # --porcelain returns no output if no changes
-    if branch_status_msg:
-        return True
-    return False
+    return bool(
+        branch_status_msg := _run_cmd(
+            ['git', 'status', '--untracked-files=all', '--porcelain']
+        )
+    )

@@ -34,8 +34,8 @@ plans_key.set_canned_acl('private')
 
 hello_key = bucket.get_key('hello.txt')
 hello_url = hello_key.generate_url(0, query_auth=False, force_http=False)
-print("{}".format(hello_url))
+print(f"{hello_url}")
 
 plans_key = bucket.get_key('secret_plans.txt')
 plans_url = plans_key.generate_url(3600, query_auth=True, force_http=False)
-print("{}".format(plans_url))
+print(f"{plans_url}")

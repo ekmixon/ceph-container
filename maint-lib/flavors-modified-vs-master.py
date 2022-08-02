@@ -18,26 +18,25 @@ def _run_cmd(cmd_array):
 
 # Stage the flavor and return the staging dir
 def _stage_flavor(flavor):
-    stage_output = _run_cmd(['make', 'FLAVORS=' + flavor, 'stage'])
+    stage_output = _run_cmd(['make', f'FLAVORS={flavor}', 'stage'])
     staging_dir_pattern = re.compile(r'^\s*STAGING_DIR\s*:\s+(.*)$', re.MULTILINE)
     match = staging_dir_pattern.search(stage_output)
     if not match or not match[1] or match[1] == '':
-        _fatal("Could not find staging dir for:\n{}".format(stage_output))
+        _fatal(f"Could not find staging dir for:\n{stage_output}")
     return match[1]
 
 
 def _filediff_intersects_sources(filediff, sources):
     for f in filediff.splitlines():
         file_pattern = re.compile(r'^.*\s+<-\s+' + f + '$', re.MULTILINE)
-        match = file_pattern.search(sources)
-        if match:
+        if match := file_pattern.search(sources):
             return True
     return False
 
 
 # By default, compare to origin/master, but allow VS_BRANCH env var to be set to change this
 VS_BRANCH = 'origin/master'
-if 'VS_BRANCH' in os.environ and not os.environ['VS_BRANCH'] == '':
+if 'VS_BRANCH' in os.environ and os.environ['VS_BRANCH'] != '':
     VS_BRANCH = os.environ['VS_BRANCH']
 VS_BRANCH_SPLIT = VS_BRANCH.split('/')
 
@@ -45,19 +44,21 @@ VS_BRANCH_SPLIT = VS_BRANCH.split('/')
 try:
     _ = _run_cmd(['git', 'fetch'] + VS_BRANCH_SPLIT + ['--quiet'])
 except subprocess.CalledProcessError:
-    _fatal("Could not fetch {}! Check that the branch exists!".format(VS_BRANCH_SPLIT.join(' ')))
+    _fatal(
+        f"Could not fetch {VS_BRANCH_SPLIT.join(' ')}! Check that the branch exists!"
+    )
+
 
 try:
     filediff = _run_cmd(['git', 'diff', '--name-only', VS_BRANCH])
 except subprocess.CalledProcessError:
-    _fatal("Could not get file diff against branch '{}'!".format(VS_BRANCH))
+    _fatal(f"Could not get file diff against branch '{VS_BRANCH}'!")
 
 # Files that haven't been committed don't show up in git diff, so also list those
 modified_files_with_status = _run_cmd(['git', 'status', '--short'])
-modified_files = ""
-for line in modified_files_with_status.splitlines():
-    # Strip Status (2 chars and a space) from each status line
-    modified_files += line[3:] + '\n'
+modified_files = "".join(
+    line[3:] + '\n' for line in modified_files_with_status.splitlines()
+)
 
 # Combine uncommitted files with our filediff list. There may be duplicates, but it won't matter.
 filediff += modified_files

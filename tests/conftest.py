@@ -13,7 +13,10 @@ def pytest_runtest_logreport(report):
         try:
             client = docker.Client('unix://var/run/docker.sock', version="auto")
         except DockerException as e:
-            raise pytest.UsageError("Could not connect to a running docker socket: %s" % str(e))
+            raise pytest.UsageError(
+                f"Could not connect to a running docker socket: {str(e)}"
+            )
+
 
         test_containers = client.containers(
             all=True,
@@ -45,8 +48,7 @@ def pull_image(image, client):
     # operation.
     pull_result = json.loads(lines[-1])
     if "error" in pull_result:
-        raise Exception("Could not pull {}: {}".format(
-            image, pull_result["error"]))
+        raise Exception(f'Could not pull {image}: {pull_result["error"]}')
 
 
 def generate_ips(start_ip, end_ip=None, offset=None):
@@ -55,15 +57,11 @@ def generate_ips(start_ip, end_ip=None, offset=None):
     start = list(map(int, start_ip.split(".")))
     if offset:
         end = start[-1] + offset
-        if end > 255:
-            end = 255
+        end = min(end, 255)
         start = start[:-1] + [end]
     else:
         ip_range.append(start_ip)
-    if not end_ip:
-        end = start[:-1] + [255]
-    else:
-        end = list(map(int, end_ip.split(".")))
+    end = list(map(int, end_ip.split("."))) if end_ip else start[:-1] + [255]
     temp = start
 
     while temp != end:
@@ -201,7 +199,9 @@ def client():
         c.run = run(c)
         return c
     except DockerException as e:
-        raise pytest.UsageError("Could not connect to a running docker socket: %s" % str(e))
+        raise pytest.UsageError(
+            f"Could not connect to a running docker socket: {str(e)}"
+        )
 
 
 container_tags = [

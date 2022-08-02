@@ -25,7 +25,7 @@ def _get_file_text(file_path):
         with open(file_path, 'rb') as txtfile:
             return txtfile.read().decode('UTF-8')
     except (OSError, IOError) as o:
-        IOOSErrorGracefulFail(o, "Cannot read or decode {} \n".format(file_path))
+        IOOSErrorGracefulFail(o, f"Cannot read or decode {file_path} \n")
 
 
 # Given a variable file, read the variable file, and replace it's corresponding
@@ -45,7 +45,7 @@ def _replace_file_in_text(variable_file_path, text, file_path):
 # Move existing file to <file>.bak. Save text into file.
 def _save_with_backup(file_path, text):
     try:
-        os.rename(file_path, '{}.bak'.format(file_path))
+        os.rename(file_path, f'{file_path}.bak')
     except (OSError, IOError) as o:
         IOOSErrorGracefulFail(o, "Could not rename file {0} to {0}.bak".format(file_path))
     save_text_to_file(text, file_path)
@@ -70,13 +70,14 @@ def _env_var_replace(template_text, file_path):
         # logging.debug('        {:<80}  -> {}'.format('No GLOBAL_VARs', file_path))
         return 0, template_text
     for var_name in variable_matches:
-        text_to_replace = '__ENV_[' + var_name + ']__'
+        text_to_replace = f'__ENV_[{var_name}]__'
         try:
             var_value = os.environ[var_name]
         except KeyError:
             sys.stderr.write(
-                'Variable {} in {} could not be replaced, because the env var {} is unset'.format(
-                    text_to_replace, file_path, var_name))
+                f'Variable {text_to_replace} in {file_path} could not be replaced, because the env var {var_name} is unset'
+            )
+
             sys.exit(1)
         logging.info(REPLACE_LOGTEXT.format(text_to_replace, var_value, file_path))
         template_text = template_text.replace(text_to_replace, var_value)
